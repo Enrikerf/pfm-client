@@ -25,7 +25,26 @@ func Test_controlAlgorithm_Calculate(t *testing.T) {
 		fields fields
 		args   args
 		want   float64
-	}{}
+	}{
+		{
+			name: "",
+			fields: fields{
+				goal:         0,
+				P:            0,
+				I:            0,
+				D:            0,
+				integralTerm: 0,
+				sampleTime:   0,
+				currentValue: 0,
+				currentError: 0,
+				pastError:    0,
+			},
+			args: args{
+				currentValue: 0,
+			},
+			want: 0,
+		},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ca := Entity.NewControlAlgorithm()
