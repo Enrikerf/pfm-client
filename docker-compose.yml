@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  pfm-client:
+    container_name: pfm-client
+    build:
+      context: .
+      dockerfile: docker/go/Dockerfile
+      target: $target
+      args:
+        GO_VERSION: 19.2
+    image: go-client:19.2-${target}
+    ports:
+      - "9092:9092"
+      - "40000:40000"
+    security_opt:
+      - "seccomp:unconfined"
+    cap_add:
+      - SYS_PTRACE
+    volumes:
+      - .:/app
+      - ~/.ssh:/home/docker-user/.ssh
+    tty: true

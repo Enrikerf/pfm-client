@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package call;
+option go_package = "./call";
+
+### Class equivalent in golang
+
+``` go
+    type OutPin interface {
+        Method()
+    }
+
+    type outPin struct {
+        id     string
+        status bool
+    }
+
+    func NewPin(id string) OutPin {
+        return &outPin{id: id, status: false}
+    }
+
+    func FullDefinedPin(id string, status bool) *outPin {
+        return &outPin{id: id, status: status}
+    }
+
+    func (outPin *outPin) Method(){
+
+    }
+
+```
+message CallRequest{
+  string command = 2;
+}
+
+message CallResponse{
+  string result = 1;
+}
+
+service CallService{
+  rpc CallUnary(CallRequest) returns (CallResponse) {};
+  rpc CallServerStream(CallRequest) returns (stream CallResponse) {};
+  rpc CallClientStream(stream CallRequest) returns (CallResponse) {};
+  rpc CallBidirectional(stream CallRequest) returns (stream CallResponse){};
+}
+

@@ -1,0 +1,70 @@
+name: Go Client CD
+
+on:
+  push:
+    branches: [ master ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@master
+        with:
+          go-version: 1.19
+      - name: Build
+        run: go build -v ./...
+      - name: Test
+        run: go test -covermode=atomic -coverprofile=cover.out ./... -v -coverpkg=./... &&
+          go tool cover -html=cover.out -o cover.html &&
+          go test -json -coverprofile=cover.json ./...
+      - uses: actions/upload-artifact@v3
+        with:
+          name: master-test-reports
+          path: cover.*
+  quality:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v3
+        with:
+          name: master-test-reports
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  release:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: changelog
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          version-file: './version.yml'
+          skip-on-empty: 'false'
+      - name: create release
+        uses: actions/create-release@master
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.changelog.outputs.tag }}
+          release_name: ${{ steps.changelog.outputs.tag }}
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+  deploy:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build on production Mode and deploy to a server
+        run: echo "pending -- deploy on the server"
+
+    
